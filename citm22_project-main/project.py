@@ -264,6 +264,12 @@ class Arcball(customtkinter.CTk):
         """
         Event triggered function on the event of a push on the button button_quat
         """
+        q0 = self.entry_quat_0.get()
+        q1 = self.entry_quat_1.get()
+        q2 = self.entry_quat_2.get()
+        q3 = self.entry_quat_3.get()
+        
+        print(q0,q1,q2,q3)
         pass
 
     

@@ -522,6 +522,72 @@ class Arcball(customtkinter.CTk):
         """
         Event triggered function on the event of a push on the button button_rotV 
         """
+        pa1=float(self.entry_rotV_1.get())
+        pa2=float(self.entry_rotV_2.get())
+        pa3=float(self.entry_rotV_3.get())
+
+        angle=math.sqrt((pa1* pa1)+(pa2* pa2)+(pa3*pa3))
+
+        axis1=pa1/angle
+        axis2=pa2/angle
+        axis3=pa3/angle    
+        
+        rotM[0,0] = axis1*axis1 + angle
+        rotM[0,1] = axis1*axis2*angle - axis3*angle
+        rotM[0,2] = axis1*axis3*angle + axis3*angle
+        rotM[1,0] = axis1*axis2*angle + axis3*angle
+        rotM[1,1] = axis2*axis2*angle + angle
+        rotM[1,2] = axis2*axis3*angle - axis1*angle
+        rotM[2,0] = axis1*axis3*angle - axis2*angle
+        rotM[2,1] = axis2*axis3*angle + axis1*angle
+        rotM[2,2] = axis3*axis3*angle + angle
+
+        self.entry_RotM_11.configure(state="normal")
+        self.entry_RotM_11.delete(0,60)
+        self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
+        self.entry_RotM_11.configure(state="disabled")
+
+        self.entry_RotM_12.configure(state="normal")
+        self.entry_RotM_12.delete(0,60)
+        self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
+        self.entry_RotM_12.configure(state="disabled")
+
+        self.entry_RotM_13.configure(state="normal")
+        self.entry_RotM_13.delete(0,60)
+        self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
+        self.entry_RotM_13.configure(state="disabled")
+
+        self.entry_RotM_21.configure(state="normal")
+        self.entry_RotM_21.delete(0,60)
+        self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
+        self.entry_RotM_21.configure(state="disabled")
+
+        self.entry_RotM_22.configure(state="normal")
+        self.entry_RotM_22.delete(0,60)
+        self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
+        self.entry_RotM_22.configure(state="disabled")
+
+        self.entry_RotM_23.configure(state="normal")
+        self.entry_RotM_23.delete(0,60)
+        self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
+        self.entry_RotM_23.configure(state="disabled")
+        
+
+        self.entry_RotM_31.configure(state="normal")
+        self.entry_RotM_31.delete(0,60)
+        self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
+        self.entry_RotM_31.configure(state="disabled")
+        
+        self.entry_RotM_32.configure(state="normal")
+        self.entry_RotM_32.delete(0,60)
+        self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
+        self.entry_RotM_32.configure(state="disabled")
+
+        self.entry_RotM_33.configure(state="normal")
+        self.entry_RotM_33.delete(0,60)
+        self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
+        self.entry_RotM_33.configure(state="disabled")
+
         pass
 
     

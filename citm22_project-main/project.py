@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import matplotlib.pyplot as plt
 
 import numpy as np
+import math
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -261,6 +262,68 @@ class Arcball(customtkinter.CTk):
         """
         Event triggered function on the event of a push on the button button_EA
         """
+        theta = float (self.entry_EA_pitch.get())
+        phi = float (self.entry_EA_roll.get())
+        psi = float (self.entry_EA_roll.get())
+
+        theta = np.deg2rad(theta)
+        phi = np.deg2rad(phi)
+        psi = np.deg2rad(psi)
+
+        rotM[0,0] = math.cos(theta)*math.cos(psi)
+        rotM[0,1] = math.cos(psi)*math.sin(theta)*math.sin(phi) - math.cos(phi)*math.sin(psi)
+        rotM[0,2] = math.cos(psi)*math.cos(phi)*math.sin(theta) + math.sin(psi)*math.sin(phi)
+        rotM[1,0] = math.cos(theta)*math.sin(psi)
+        rotM[1,1] = math.sin(psi)*math.sin(theta)*math.sin(phi) + math.cos(phi)*math.cos(psi)
+        rotM[1,2] = math.sin(psi)*math.sin(theta)*math.sin(phi) - math.cos(psi)*math.sin(phi)
+        rotM[2,0] = -math.sin(theta)
+        rotM[2,1] = math.cos(theta)*math.sin(phi)
+        rotM[2,2] = math.cos(theta)*math.cos(phi)
+
+        self.entry_RotM_11.configure(state="normal")
+        self.entry_RotM_11.delete(0,60)
+        self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
+        self.entry_RotM_11.configure(state="disabled")
+
+        self.entry_RotM_12.configure(state="normal")
+        self.entry_RotM_12.delete(0,60)
+        self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
+        self.entry_RotM_12.configure(state="disabled")
+
+        self.entry_RotM_13.configure(state="normal")
+        self.entry_RotM_13.delete(0,60)
+        self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
+        self.entry_RotM_13.configure(state="disabled")
+
+        self.entry_RotM_21.configure(state="normal")
+        self.entry_RotM_21.delete(0,60)
+        self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
+        self.entry_RotM_21.configure(state="disabled")
+
+        self.entry_RotM_22.configure(state="normal")
+        self.entry_RotM_22.delete(0,60)
+        self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
+        self.entry_RotM_22.configure(state="disabled")
+
+        self.entry_RotM_23.configure(state="normal")
+        self.entry_RotM_23.delete(0,60)
+        self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
+        self.entry_RotM_23.configure(state="disabled")
+        
+        self.entry_RotM_31.configure(state="normal")
+        self.entry_RotM_31.delete(0,60)
+        self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
+        self.entry_RotM_31.configure(state="disabled")
+        
+        self.entry_RotM_32.configure(state="normal")
+        self.entry_RotM_32.delete(0,60)
+        self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
+        self.entry_RotM_32.configure(state="disabled")
+
+        self.entry_RotM_33.configure(state="normal")
+        self.entry_RotM_33.delete(0,60)
+        self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
+        self.entry_RotM_33.configure(state="disabled")
         pass
 
     

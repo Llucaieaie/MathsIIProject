@@ -10,6 +10,9 @@ import numpy as np
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
+rotM = np.array([[1.00,0.00,0.00],
+        [0.00,1.00,0.00],
+        [0.00,0.00,1.00]])
 
 class Arcball(customtkinter.CTk):
 
@@ -180,47 +183,48 @@ class Arcball(customtkinter.CTk):
         self.label_RotM.grid(row=0, column=0, rowspan=3, padx=(2,0), pady=(20,0), sticky="e")
 
         self.entry_RotM_11= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_11.insert(0,"1.0")
+        self.entry_RotM_11.insert(0,rotM[0,0])
         self.entry_RotM_11.configure(state="disabled")
         self.entry_RotM_11.grid(row=0, column=1, padx=(2,0), pady=(20,0), sticky="ew")
 
+
         self.entry_RotM_12= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_12.insert(0,"0.0")
+        self.entry_RotM_12.insert(0,rotM[0,1])
         self.entry_RotM_12.configure(state="disabled")
         self.entry_RotM_12.grid(row=0, column=2, padx=(2,0), pady=(20,0), sticky="ew")
 
         self.entry_RotM_13= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_13.insert(0,"0.0")
+        self.entry_RotM_13.insert(0,rotM[0,2])
         self.entry_RotM_13.configure(state="disabled")
         self.entry_RotM_13.grid(row=0, column=3, padx=(2,0), pady=(20,0), sticky="ew")
 
         self.entry_RotM_21= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_21.insert(0,"0.0")
+        self.entry_RotM_21.insert(0,rotM[1,0])
         self.entry_RotM_21.configure(state="disabled")
         self.entry_RotM_21.grid(row=1, column=1, padx=(2,0), pady=(2,0), sticky="ew")
 
         self.entry_RotM_22= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_22.insert(0,"1.0")
+        self.entry_RotM_22.insert(0,rotM[1,1])
         self.entry_RotM_22.configure(state="disabled")
         self.entry_RotM_22.grid(row=1, column=2, padx=(2,0), pady=(2,0), sticky="ew")
 
         self.entry_RotM_23= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_23.insert(0,"0.0")
+        self.entry_RotM_23.insert(0,rotM[1,2])
         self.entry_RotM_23.configure(state="disabled")
         self.entry_RotM_23.grid(row=1, column=3, padx=(2,0), pady=(2,0), sticky="ew")
 
         self.entry_RotM_31= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_31.insert(0,"0.0")
+        self.entry_RotM_31.insert(0,rotM[2,0])
         self.entry_RotM_31.configure(state="disabled")
         self.entry_RotM_31.grid(row=2, column=1, padx=(2,0), pady=(2,0), sticky="ew")
 
         self.entry_RotM_32= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_32.insert(0,"0.0")
+        self.entry_RotM_32.insert(0,rotM[2,1])
         self.entry_RotM_32.configure(state="disabled")
         self.entry_RotM_32.grid(row=2, column=2, padx=(2,0), pady=(2,0), sticky="ew")
 
         self.entry_RotM_33= customtkinter.CTkEntry(self.RotMFrame, width=50, border_width=0)
-        self.entry_RotM_33.insert(0,"1.0")
+        self.entry_RotM_33.insert(0,rotM[2,2])
         self.entry_RotM_33.configure(state="disabled")
         self.entry_RotM_33.grid(row=2, column=3, padx=(2,0), pady=(2,0), sticky="ew")
     
@@ -268,8 +272,57 @@ class Arcball(customtkinter.CTk):
         q1 = self.entry_quat_1.get()
         q2 = self.entry_quat_2.get()
         q3 = self.entry_quat_3.get()
+        q = np.array([q0,q1,q2,q3])
+
+        #rotM = ((np.power(q[0],2)-(q.T@q))*np.identity(3)+2(q@q.T)+(2*q[0]*))
+
+        rotM[0,0] = q0[0]@q0[0] + q0[1]@q0[1] - q0[2]@q0[2] - q0[3]@q0[3]
+
+        self.entry_RotM_11.configure(state="normal")
+        self.entry_RotM_11.delete(0,4)
+        self.entry_RotM_11.insert(0,rotM[0,0])
+        self.entry_RotM_11.configure(state="disabled")
+
+        self.entry_RotM_12.configure(state="normal")
+        self.entry_RotM_12.delete(0,4)
+        self.entry_RotM_12.insert(0,rotM[0,1])
+        self.entry_RotM_12.configure(state="disabled")
+
+        self.entry_RotM_13.configure(state="normal")
+        self.entry_RotM_13.delete(0,4)
+        self.entry_RotM_13.insert(0,rotM[0,2])
+        self.entry_RotM_13.configure(state="disabled")
+
+        self.entry_RotM_21.configure(state="normal")
+        self.entry_RotM_21.delete(0,4)
+        self.entry_RotM_21.insert(0,rotM[1,1])
+        self.entry_RotM_21.configure(state="disabled")
+
+        self.entry_RotM_22.configure(state="normal")
+        self.entry_RotM_22.delete(0,4)
+        self.entry_RotM_22.insert(0,rotM[1,2])
+        self.entry_RotM_22.configure(state="disabled")
+
+        self.entry_RotM_23.configure(state="normal")
+        self.entry_RotM_23.delete(0,4)
+        self.entry_RotM_23.insert(0,rotM[1,3])
+        self.entry_RotM_23.configure(state="disabled")
+
+        self.entry_RotM_31.configure(state="normal")
+        self.entry_RotM_31.delete(0,4)
+        self.entry_RotM_31.insert(0,rotM[2,1])
+        self.entry_RotM_31.configure(state="disabled")
         
-        print(q0,q1,q2,q3)
+        self.entry_RotM_32.configure(state="normal")
+        self.entry_RotM_32.delete(0,4)
+        self.entry_RotM_32.insert(0,rotM[2,2])
+        self.entry_RotM_32.configure(state="disabled")
+
+        self.entry_RotM_33.configure(state="normal")
+        self.entry_RotM_33.delete(0,4)
+        self.entry_RotM_33.insert(0,rotM[2,3])
+        self.entry_RotM_33.configure(state="disabled")        
+
         pass
 
     

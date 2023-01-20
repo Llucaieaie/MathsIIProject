@@ -272,11 +272,18 @@ class Arcball(customtkinter.CTk):
         q1 = self.entry_quat_1.get()
         q2 = self.entry_quat_2.get()
         q3 = self.entry_quat_3.get()
-        q = np.array([q0,q1,q2,q3])
 
-        #rotM = ((np.power(q[0],2)-(q.T@q))*np.identity(3)+2(q@q.T)+(2*q[0]*))
 
-        rotM[0,0] = q0[0]@q0[0] + q0[1]@q0[1] - q0[2]@q0[2] - q0[3]@q0[3]
+        rotM[0,0] = q0*q0 + q1*q1 - q2*q2 - q3*q3
+        rotM[0,1] = 2*q1*q2 - 2*q0*q3
+        rotM[0,2] = 2*q1*q3 + 2*q0*q2
+        rotM[1,0] = 2*q1*q2 + 2*q0*q3
+        rotM[1,1] = q0*q0 - q1*q1 + q2*q2 - q3*q3
+        rotM[1,2] = 2*q2*q3 - 2*q0*q1
+        rotM[2,0] = 2*q1*q3 - 2*q0*q2
+        rotM[2,1] = 2*q2*q3 + 2*q0*q1
+        rotM[2,2] = q0*q0 - q1*q1 - q2*q2 + q3*q3
+
 
         self.entry_RotM_11.configure(state="normal")
         self.entry_RotM_11.delete(0,4)

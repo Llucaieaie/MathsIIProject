@@ -14,6 +14,33 @@ customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard),
 rotM = np.array([[1.00,0.00,0.00],
         [0.00,1.00,0.00],
         [0.00,0.00,1.00]])
+m0=np.array([0.00,0.00,0.00])
+m1=np.array([0.00,0.00,0.00])
+
+def module(a,b,c):
+    r=math.sqrt(a**2+b**2+c**2)
+    return r
+
+def quat2rotm(q0,q1,q2,q3):
+
+    quatModule = np.sqrt(q0*q0+q1*q1+q2*q2+q3*q3)
+    q0/=quatModule
+    q1/=quatModule
+    q2/=quatModule
+    q3/=quatModule
+    print(q0,q1,q2,q3)
+    rotM[0,0] = q0*q0 + q1*q1 - q2*q2 - q3*q3
+    rotM[0,1] = 2*q1*q2 - 2*q0*q3
+    rotM[0,2] = 2*q1*q3 + 2*q0*q2
+    rotM[1,0] = 2*q1*q2 + 2*q0*q3
+    rotM[1,1] = q0*q0 - q1*q1 + q2*q2 - q3*q3
+    rotM[1,2] = 2*q2*q3 - 2*q0*q1
+    rotM[2,0] = 2*q1*q3 - 2*q0*q2
+    rotM[2,1] = 2*q2*q3 + 2*q0*q1
+    rotM[2,2] = q0*q0 - q1*q1 - q2*q2 + q3*q3
+    return rotM
+
+    
 
 class Arcball(customtkinter.CTk):
 
@@ -688,21 +715,7 @@ class Arcball(customtkinter.CTk):
         q2 = float (self.entry_quat_2.get())
         q3 = float (self.entry_quat_3.get())
 
-        quatModule = np.sqrt(q0*q0+q1*q1+q2*q2+q3*q3)
-        q0/=quatModule
-        q1/=quatModule
-        q2/=quatModule
-        q3/=quatModule
-        print(q0,q1,q2,q3)
-        rotM[0,0] = q0*q0 + q1*q1 - q2*q2 - q3*q3
-        rotM[0,1] = 2*q1*q2 - 2*q0*q3
-        rotM[0,2] = 2*q1*q3 + 2*q0*q2
-        rotM[1,0] = 2*q1*q2 + 2*q0*q3
-        rotM[1,1] = q0*q0 - q1*q1 + q2*q2 - q3*q3
-        rotM[1,2] = 2*q2*q3 - 2*q0*q1
-        rotM[2,0] = 2*q1*q3 - 2*q0*q2
-        rotM[2,1] = 2*q2*q3 + 2*q0*q1
-        rotM[2,2] = q0*q0 - q1*q1 - q2*q2 + q3*q3
+        rotM=quat2rotm(q0,q1,q2,q3)
 
         self.entry_RotM_11.configure(state="normal")
         self.entry_RotM_11.delete(0,60)
@@ -758,6 +771,24 @@ class Arcball(customtkinter.CTk):
         """
         Event triggered function on the event of a mouse click inside the figure canvas
         """
+        r=math.sqrt(2)
+        r2=2
+        x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
+        
+        if((x1**2+y1**2)<(1/2)*r2):
+            m0[0]=x1
+            m0[1]=y1
+            m0[2]=math.sqrt(r2-(x1**2)-(y1**2))
+            print(m0)
+
+
+        if((x1**2+y1**2)>=(1/2)*r2):
+            m0[0]= (r*x1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+            m0[1]= (r*y1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+            m0[2]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+            print(m0)
+            
+            
         print("Pressed button", event.button)
 
         if event.button:
@@ -768,22 +799,39 @@ class Arcball(customtkinter.CTk):
         """
         Event triggered function on the event of a mouse motion
         """
-        
-        #Example
         if self.pressed: #Only triggered if previous click
-            x_fig,y_fig= self.canvas_coordinates_to_figure_coordinates(event.x,event.y) #Extract viewport coordinates
             
-            print("x: ", x_fig)
-            print("y", y_fig)
-            print("r2", x_fig*x_fig+y_fig*y_fig)
+            r2=2
+            r=math.sqrt(r2)
+            x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
+        
+            if((x1**2+y1**2)<(1/2)*r2):
+                m1[0]=x1
+                m1[1]=y1
+                m1[2]=math.sqrt(r2-(x1**2)-(y1**2))
+                print(m1)
 
-            R = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])#per a modificar la matriu de rotacio
-                    
+
+            if((x1**2+y1**2)>=(1/2)*r2):
+                m1[0]= (r*x1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+                m1[1]= (r*y1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+                m1[2]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+                print(m1)
+
+            angle=math.acos(np.dot(m0,m1)/(module(m0[0],m0[1],m0[2])*module(m1[0],m1[1],m1[2])))
+            quat=np.array([0.00,0.00,0.00,0.00])
+            quat[0]=math.cos(angle/2)
+            crossvec=np.cross(m0,m1)
+            qvec=math.sin(angle/2)*(crossvec/module(crossvec[0],crossvec[2],crossvec[2]))
+            quat[1]=qvec[0]
+            quat[2]=qvec[1]
+            quat[3]=qvec[2]
+            print(quat)
+            R = quat2rotm(quat[0],quat[1],quat[2],quat[3])  
+                  
             self.M = R.dot(self.M) #Modify the vertices matrix with a rotation matrix M
-
             self.update_cube() #Update the cube
 
-    
     def onrelease(self,event):
         """
         Event triggered function on the event of a mouse release

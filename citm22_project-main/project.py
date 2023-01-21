@@ -238,7 +238,7 @@ class Arcball(customtkinter.CTk):
         [0.00,1.00,0.00],
         [0.00,0.00,1.00]])
 
-        # Orientation vars. Initialized to represent 0 rotation
+# Orientation vars. Initialized to represent 0 rotation
         self.quat = np.array([[1],[0],[0],[0]])
         self.rotM = np.eye(3)
         self.AA = {"axis": np.array([[0],[0],[0]]), "angle":0.0}
@@ -448,7 +448,6 @@ class Arcball(customtkinter.CTk):
         self.entry_RotM_33.grid(row=2, column=3, padx=(2,0), pady=(2,0), sticky="ew")
         print("reset")
 
-    
     def apply_AA(self):
         """
         Event triggered function on the event of a push on the button button_AA
@@ -461,6 +460,13 @@ class Arcball(customtkinter.CTk):
         
         angle = np.deg2rad(angle)
 
+        axisModule = np.sqrt(axis1*axis1+axis2*axis2+axis3*axis3)
+        print(axisModule)
+        axis1/=axisModule
+        axis2/=axisModule
+        axis3/=axisModule
+        print(axis1,axis2,axis3,angle)
+        
         rotM[0,0] = axis1*axis1 + angle
         rotM[0,1] = axis1*axis2*angle - axis3*angle
         rotM[0,2] = axis1*axis3*angle + axis3*angle
@@ -517,6 +523,8 @@ class Arcball(customtkinter.CTk):
         self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
         self.entry_RotM_33.configure(state="disabled")
 
+        self.M = rotM.dot(self.M)
+        self.update_cube()
     
     def apply_rotV(self):
         """
@@ -526,21 +534,21 @@ class Arcball(customtkinter.CTk):
         pa2=float(self.entry_rotV_2.get())
         pa3=float(self.entry_rotV_3.get())
 
-        angle=math.sqrt((pa1* pa1)+(pa2* pa2)+(pa3*pa3))
+        vangle=math.sqrt((pa1* pa1)+(pa2* pa2)+(pa3*pa3))
 
-        axis1=pa1/angle
-        axis2=pa2/angle
-        axis3=pa3/angle    
+        vaxis1=pa1/vangle
+        vaxis2=pa2/vangle
+        vaxis3=pa3/vangle    
         
-        rotM[0,0] = axis1*axis1 + angle
-        rotM[0,1] = axis1*axis2*angle - axis3*angle
-        rotM[0,2] = axis1*axis3*angle + axis3*angle
-        rotM[1,0] = axis1*axis2*angle + axis3*angle
-        rotM[1,1] = axis2*axis2*angle + angle
-        rotM[1,2] = axis2*axis3*angle - axis1*angle
-        rotM[2,0] = axis1*axis3*angle - axis2*angle
-        rotM[2,1] = axis2*axis3*angle + axis1*angle
-        rotM[2,2] = axis3*axis3*angle + angle
+        rotM[0,0] = vaxis1*vaxis1 + vangle
+        rotM[0,1] = vaxis1*vaxis2*vangle - vaxis3*vangle
+        rotM[0,2] = vaxis1*vaxis3*vangle + vaxis3*vangle
+        rotM[1,0] = vaxis1*vaxis2*vangle + vaxis3*vangle
+        rotM[1,1] = vaxis2*vaxis2*vangle + vangle
+        rotM[1,2] = vaxis2*vaxis3*vangle - vaxis1*vangle
+        rotM[2,0] = vaxis1*vaxis3*vangle - vaxis2*vangle
+        rotM[2,1] = vaxis2*vaxis3*vangle + vaxis1*vangle
+        rotM[2,2] = vaxis3*vaxis3*vangle + vangle
 
         self.entry_RotM_11.configure(state="normal")
         self.entry_RotM_11.delete(0,60)
@@ -587,6 +595,9 @@ class Arcball(customtkinter.CTk):
         self.entry_RotM_33.delete(0,60)
         self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
         self.entry_RotM_33.configure(state="disabled")
+
+        self.M = rotM.dot(self.M)
+        self.update_cube()
 
         pass
 
@@ -597,7 +608,7 @@ class Arcball(customtkinter.CTk):
         """
         theta = float (self.entry_EA_pitch.get())
         phi = float (self.entry_EA_roll.get())
-        psi = float (self.entry_EA_roll.get())
+        psi = float (self.entry_EA_yaw.get())
 
         theta = np.deg2rad(theta)
         phi = np.deg2rad(phi)
@@ -608,7 +619,7 @@ class Arcball(customtkinter.CTk):
         rotM[0,2] = math.cos(psi)*math.cos(phi)*math.sin(theta) + math.sin(psi)*math.sin(phi)
         rotM[1,0] = math.cos(theta)*math.sin(psi)
         rotM[1,1] = math.sin(psi)*math.sin(theta)*math.sin(phi) + math.cos(phi)*math.cos(psi)
-        rotM[1,2] = math.sin(psi)*math.sin(theta)*math.sin(phi) - math.cos(psi)*math.sin(phi)
+        rotM[1,2] = math.sin(psi)*math.sin(theta)*math.cos(phi) - math.cos(psi)*math.sin(phi)
         rotM[2,0] = -math.sin(theta)
         rotM[2,1] = math.cos(theta)*math.sin(phi)
         rotM[2,2] = math.cos(theta)*math.cos(phi)
@@ -657,6 +668,10 @@ class Arcball(customtkinter.CTk):
         self.entry_RotM_33.delete(0,60)
         self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
         self.entry_RotM_33.configure(state="disabled")
+
+        self.M = rotM.dot(self.M)
+        self.update_cube()
+
         pass
 
     
@@ -669,6 +684,12 @@ class Arcball(customtkinter.CTk):
         q2 = float (self.entry_quat_2.get())
         q3 = float (self.entry_quat_3.get())
 
+        quatModule = np.sqrt(q0*q0+q1*q1+q2*q2+q3*q3)
+        q0/=quatModule
+        q1/=quatModule
+        q2/=quatModule
+        q3/=quatModule
+        print(q0,q1,q2,q3)
         rotM[0,0] = q0*q0 + q1*q1 - q2*q2 - q3*q3
         rotM[0,1] = 2*q1*q2 - 2*q0*q3
         rotM[0,2] = 2*q1*q3 + 2*q0*q2
@@ -724,7 +745,8 @@ class Arcball(customtkinter.CTk):
         self.entry_RotM_33.delete(0,60)
         self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
         self.entry_RotM_33.configure(state="disabled")        
-
+        self.M = rotM.dot(self.M)
+        self.update_cube()
         pass
 
     

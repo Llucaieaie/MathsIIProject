@@ -12,8 +12,8 @@ customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark",
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 rotM = np.array([[1.00,0.00,0.00],
-        [0.00,1.00,0.00],
-        [0.00,0.00,1.00]])
+                [0.00,1.00,0.00],
+                [0.00,0.00,1.00]])
 m0=np.array([0.00,0.00,0.00])
 m1=np.array([0.00,0.00,0.00])
 
@@ -28,7 +28,6 @@ def quat2rotm(q0,q1,q2,q3):
     q1/=quatModule
     q2/=quatModule
     q3/=quatModule
-    print(q0,q1,q2,q3)
     rotM[0,0] = q0*q0 + q1*q1 - q2*q2 - q3*q3
     rotM[0,1] = 2*q1*q2 - 2*q0*q3
     rotM[0,2] = 2*q1*q3 + 2*q0*q2
@@ -40,7 +39,80 @@ def quat2rotm(q0,q1,q2,q3):
     rotM[2,2] = q0*q0 - q1*q1 - q2*q2 + q3*q3
     return rotM
 
+def rotMprinted(self):
+    self.entry_RotM_11.configure(state="normal")
+    self.entry_RotM_11.delete(0,60)
+    self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
+    self.entry_RotM_11.configure(state="disabled")
+
+    self.entry_RotM_12.configure(state="normal")
+    self.entry_RotM_12.delete(0,60)
+    self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
+    self.entry_RotM_12.configure(state="disabled")
+
+    self.entry_RotM_13.configure(state="normal")
+    self.entry_RotM_13.delete(0,60)
+    self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
+    self.entry_RotM_13.configure(state="disabled")
+
+    self.entry_RotM_21.configure(state="normal")
+    self.entry_RotM_21.delete(0,60)
+    self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
+    self.entry_RotM_21.configure(state="disabled")
+
+    self.entry_RotM_22.configure(state="normal")
+    self.entry_RotM_22.delete(0,60)
+    self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
+    self.entry_RotM_22.configure(state="disabled")
+
+    self.entry_RotM_23.configure(state="normal")
+    self.entry_RotM_23.delete(0,60)
+    self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
+    self.entry_RotM_23.configure(state="disabled")
     
+    self.entry_RotM_31.configure(state="normal")
+    self.entry_RotM_31.delete(0,60)
+    self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
+    self.entry_RotM_31.configure(state="disabled")
+    
+    self.entry_RotM_32.configure(state="normal")
+    self.entry_RotM_32.delete(0,60)
+    self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
+    self.entry_RotM_32.configure(state="disabled")
+
+    self.entry_RotM_33.configure(state="normal")
+    self.entry_RotM_33.delete(0,60)
+    self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
+    self.entry_RotM_33.configure(state="disabled")
+
+    self.M = rotM.dot(self.M)
+    self.update_cube()
+
+    pass
+
+def quat2EA(x, y, z, w):
+      
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+    
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+    
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+    
+    return roll_x, pitch_y, yaw_z # in radians 
+
+def AA2RV(a1,a2,a3,angle):
+    RV=np.array([0.00,0.00,0.00])
+    RV[0]=a1*angle
+    RV[1]=a2*angle
+    RV[2]=a3*angle
+    return RV
 
 class Arcball(customtkinter.CTk):
 
@@ -256,7 +328,6 @@ class Arcball(customtkinter.CTk):
         self.entry_RotM_33.configure(state="disabled")
         self.entry_RotM_33.grid(row=2, column=3, padx=(2,0), pady=(2,0), sticky="ew")
     
-
     def resetbutton_pressed(self):
         """
         Event triggered function on the event of a push on the button Reset
@@ -265,7 +336,7 @@ class Arcball(customtkinter.CTk):
         [0.00,1.00,0.00],
         [0.00,0.00,1.00]])
 
-# Orientation vars. Initialized to represent 0 rotation
+        # Orientation vars. Initialized to represent 0 rotation
         self.quat = np.array([[1],[0],[0],[0]])
         self.rotM = np.eye(3)
         self.AA = {"axis": np.array([[0],[0],[0]]), "angle":0.0}
@@ -488,12 +559,10 @@ class Arcball(customtkinter.CTk):
         angle = np.deg2rad(angle)
 
         axisModule = np.sqrt(axis1*axis1+axis2*axis2+axis3*axis3)
-        print(axisModule)
+
         axis1/=axisModule
         axis2/=axisModule
         axis3/=axisModule
-        print(axis1,axis2,axis3,angle)
-        
         rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
         rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
         rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
@@ -504,55 +573,10 @@ class Arcball(customtkinter.CTk):
         rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
         rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
 
-        self.entry_RotM_11.configure(state="normal")
-        self.entry_RotM_11.delete(0,60)
-        self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
-        self.entry_RotM_11.configure(state="disabled")
+        rotMprinted(self)
 
-        self.entry_RotM_12.configure(state="normal")
-        self.entry_RotM_12.delete(0,60)
-        self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
-        self.entry_RotM_12.configure(state="disabled")
+        pass
 
-        self.entry_RotM_13.configure(state="normal")
-        self.entry_RotM_13.delete(0,60)
-        self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
-        self.entry_RotM_13.configure(state="disabled")
-
-        self.entry_RotM_21.configure(state="normal")
-        self.entry_RotM_21.delete(0,60)
-        self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
-        self.entry_RotM_21.configure(state="disabled")
-
-        self.entry_RotM_22.configure(state="normal")
-        self.entry_RotM_22.delete(0,60)
-        self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
-        self.entry_RotM_22.configure(state="disabled")
-
-        self.entry_RotM_23.configure(state="normal")
-        self.entry_RotM_23.delete(0,60)
-        self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
-        self.entry_RotM_23.configure(state="disabled")
-        
-
-        self.entry_RotM_31.configure(state="normal")
-        self.entry_RotM_31.delete(0,60)
-        self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
-        self.entry_RotM_31.configure(state="disabled")
-        
-        self.entry_RotM_32.configure(state="normal")
-        self.entry_RotM_32.delete(0,60)
-        self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
-        self.entry_RotM_32.configure(state="disabled")
-
-        self.entry_RotM_33.configure(state="normal")
-        self.entry_RotM_33.delete(0,60)
-        self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
-        self.entry_RotM_33.configure(state="disabled")
-
-        self.M = rotM.dot(self.M)
-        self.update_cube()
-    
     def apply_rotV(self):
         """
         Event triggered function on the event of a push on the button button_rotV 
@@ -566,8 +590,6 @@ class Arcball(customtkinter.CTk):
         axis1=pa1/angle
         axis2=pa2/angle
         axis3=pa3/angle    
-        
-        print(axis1,axis2,axis3,angle)
 
         rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
         rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
@@ -579,56 +601,7 @@ class Arcball(customtkinter.CTk):
         rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
         rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
 
-      
-
-        self.entry_RotM_11.configure(state="normal")
-        self.entry_RotM_11.delete(0,60)
-        self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
-        self.entry_RotM_11.configure(state="disabled")
-
-        self.entry_RotM_12.configure(state="normal")
-        self.entry_RotM_12.delete(0,60)
-        self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
-        self.entry_RotM_12.configure(state="disabled")
-
-        self.entry_RotM_13.configure(state="normal")
-        self.entry_RotM_13.delete(0,60)
-        self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
-        self.entry_RotM_13.configure(state="disabled")
-
-        self.entry_RotM_21.configure(state="normal")
-        self.entry_RotM_21.delete(0,60)
-        self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
-        self.entry_RotM_21.configure(state="disabled")
-
-        self.entry_RotM_22.configure(state="normal")
-        self.entry_RotM_22.delete(0,60)
-        self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
-        self.entry_RotM_22.configure(state="disabled")
-
-        self.entry_RotM_23.configure(state="normal")
-        self.entry_RotM_23.delete(0,60)
-        self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
-        self.entry_RotM_23.configure(state="disabled")
-        
-
-        self.entry_RotM_31.configure(state="normal")
-        self.entry_RotM_31.delete(0,60)
-        self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
-        self.entry_RotM_31.configure(state="disabled")
-        
-        self.entry_RotM_32.configure(state="normal")
-        self.entry_RotM_32.delete(0,60)
-        self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
-        self.entry_RotM_32.configure(state="disabled")
-
-        self.entry_RotM_33.configure(state="normal")
-        self.entry_RotM_33.delete(0,60)
-        self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
-        self.entry_RotM_33.configure(state="disabled")
-
-        self.M = rotM.dot(self.M)
-        self.update_cube()
+        rotMprinted(self)
 
         pass
 
@@ -655,53 +628,7 @@ class Arcball(customtkinter.CTk):
         rotM[2,1] = math.cos(theta)*math.sin(phi)
         rotM[2,2] = math.cos(theta)*math.cos(phi)
 
-        self.entry_RotM_11.configure(state="normal")
-        self.entry_RotM_11.delete(0,60)
-        self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
-        self.entry_RotM_11.configure(state="disabled")
-
-        self.entry_RotM_12.configure(state="normal")
-        self.entry_RotM_12.delete(0,60)
-        self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
-        self.entry_RotM_12.configure(state="disabled")
-
-        self.entry_RotM_13.configure(state="normal")
-        self.entry_RotM_13.delete(0,60)
-        self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
-        self.entry_RotM_13.configure(state="disabled")
-
-        self.entry_RotM_21.configure(state="normal")
-        self.entry_RotM_21.delete(0,60)
-        self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
-        self.entry_RotM_21.configure(state="disabled")
-
-        self.entry_RotM_22.configure(state="normal")
-        self.entry_RotM_22.delete(0,60)
-        self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
-        self.entry_RotM_22.configure(state="disabled")
-
-        self.entry_RotM_23.configure(state="normal")
-        self.entry_RotM_23.delete(0,60)
-        self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
-        self.entry_RotM_23.configure(state="disabled")
-        
-        self.entry_RotM_31.configure(state="normal")
-        self.entry_RotM_31.delete(0,60)
-        self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
-        self.entry_RotM_31.configure(state="disabled")
-        
-        self.entry_RotM_32.configure(state="normal")
-        self.entry_RotM_32.delete(0,60)
-        self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
-        self.entry_RotM_32.configure(state="disabled")
-
-        self.entry_RotM_33.configure(state="normal")
-        self.entry_RotM_33.delete(0,60)
-        self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
-        self.entry_RotM_33.configure(state="disabled")
-
-        self.M = rotM.dot(self.M)
-        self.update_cube()
+        rotMprinted(self)
 
         pass
 
@@ -717,53 +644,8 @@ class Arcball(customtkinter.CTk):
 
         rotM=quat2rotm(q0,q1,q2,q3)
 
-        self.entry_RotM_11.configure(state="normal")
-        self.entry_RotM_11.delete(0,60)
-        self.entry_RotM_11.insert(0,"{0:.4f}".format(rotM[0,0]))
-        self.entry_RotM_11.configure(state="disabled")
+        rotMprinted(self)
 
-        self.entry_RotM_12.configure(state="normal")
-        self.entry_RotM_12.delete(0,60)
-        self.entry_RotM_12.insert(0,"{0:.4f}".format(rotM[0,1]))
-        self.entry_RotM_12.configure(state="disabled")
-
-        self.entry_RotM_13.configure(state="normal")
-        self.entry_RotM_13.delete(0,60)
-        self.entry_RotM_13.insert(0,"{0:.4f}".format(rotM[0,2]))
-        self.entry_RotM_13.configure(state="disabled")
-
-        self.entry_RotM_21.configure(state="normal")
-        self.entry_RotM_21.delete(0,60)
-        self.entry_RotM_21.insert(0,"{0:.4f}".format(rotM[1,0]))
-        self.entry_RotM_21.configure(state="disabled")
-
-        self.entry_RotM_22.configure(state="normal")
-        self.entry_RotM_22.delete(0,60)
-        self.entry_RotM_22.insert(0,"{0:.4f}".format(rotM[1,1]))
-        self.entry_RotM_22.configure(state="disabled")
-
-        self.entry_RotM_23.configure(state="normal")
-        self.entry_RotM_23.delete(0,60)
-        self.entry_RotM_23.insert(0,"{0:.4f}".format(rotM[1,2]))
-        self.entry_RotM_23.configure(state="disabled")
-        
-
-        self.entry_RotM_31.configure(state="normal")
-        self.entry_RotM_31.delete(0,60)
-        self.entry_RotM_31.insert(0,"{0:.4f}".format(rotM[2,0]))
-        self.entry_RotM_31.configure(state="disabled")
-        
-        self.entry_RotM_32.configure(state="normal")
-        self.entry_RotM_32.delete(0,60)
-        self.entry_RotM_32.insert(0,"{0:.4f}".format(rotM[2,1]))
-        self.entry_RotM_32.configure(state="disabled")
-
-        self.entry_RotM_33.configure(state="normal")
-        self.entry_RotM_33.delete(0,60)
-        self.entry_RotM_33.insert(0,"{0:.4f}".format(rotM[2,2]))
-        self.entry_RotM_33.configure(state="disabled")        
-        self.M = rotM.dot(self.M)
-        self.update_cube()
         pass
 
     
@@ -779,15 +661,11 @@ class Arcball(customtkinter.CTk):
             m0[0]=x1
             m0[1]=y1
             m0[2]=math.sqrt(r2-(x1**2)-(y1**2))
-            print(m0)
-
 
         if((x1**2+y1**2)>=(1/2)*r2):
             m0[0]= (r*x1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
             m0[1]= (r*y1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
             m0[2]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
-            print(m0)
-            
             
         print("Pressed button", event.button)
 
@@ -809,27 +687,65 @@ class Arcball(customtkinter.CTk):
                 m1[0]=x1
                 m1[1]=y1
                 m1[2]=math.sqrt(r2-(x1**2)-(y1**2))
-                print(m1)
+
 
 
             if((x1**2+y1**2)>=(1/2)*r2):
                 m1[0]= (r*x1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
                 m1[1]= (r*y1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
                 m1[2]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
-                print(m1)
 
             angle=math.acos(np.dot(m0,m1)/(module(m0[0],m0[1],m0[2])*module(m1[0],m1[1],m1[2])))
             quat=np.array([0.00,0.00,0.00,0.00])
             quat[0]=math.cos(angle/2)
-            crossvec=np.cross(m0,m1)
-            qvec=math.sin(angle/2)*(crossvec/module(crossvec[0],crossvec[2],crossvec[2]))
+            raxis=np.cross(m0,m1)
+            qvec=math.sin(angle/2)*(raxis/module(raxis[0],raxis[2],raxis[2]))
             quat[1]=qvec[0]
             quat[2]=qvec[1]
             quat[3]=qvec[2]
-            print(quat)
+            
+            
+            self.entry_AA_angle.delete(0,50)
+            self.entry_AA_angle.insert(0,"{0:.4f}".format(np.rad2deg(angle)))
+            self.entry_AA_ax1.delete(0,50)
+            self.entry_AA_ax1.insert(0,"{0:.4f}".format(raxis[0]))
+            self.entry_AA_ax2.delete(0,50)
+            self.entry_AA_ax2.insert(0,"{0:.4f}".format(raxis[1]))
+            self.entry_AA_ax3.delete(0,50)
+            self.entry_AA_ax3.insert(0,"{0:.4f}".format(raxis[2]))
+
+            rv=AA2RV(raxis[0],raxis[1],raxis[2],angle)
+            self.entry_rotV_1.delete(0,50)
+            self.entry_rotV_1.insert(0,"{0:.4f}".format(rv[0]))
+            self.entry_rotV_2.delete(0,50)
+            self.entry_rotV_2.insert(0,"{0:.4f}".format(rv[1]))
+            self.entry_rotV_3.delete(0,50)
+            self.entry_rotV_3.insert(0,"{0:.4f}".format(rv[2]))
+
+            angle1,angle2,angle3 = quat2EA(quat[1],quat[2],quat[3],quat[0])
+
+            self.entry_EA_roll.delete(0,50)
+            self.entry_EA_roll.insert(0,"{0:.4f}".format(np.rad2deg(angle1)))
+            self.entry_EA_pitch.delete(0,50)
+            self.entry_EA_pitch.insert(0,"{0:.4f}".format(np.rad2deg(angle2)))
+            self.entry_EA_yaw.delete(0,50)
+            self.entry_EA_yaw.insert(0,"{0:.4f}".format(np.rad2deg(angle3)))
+
+            self.entry_quat_0.delete(0,50)
+            self.entry_quat_0.insert(0,"{0:.4f}".format(quat[0]))
+            self.entry_quat_1.delete(0,50)
+            self.entry_quat_1.insert(0,"{0:.4f}".format(quat[1]))
+            self.entry_quat_2.delete(0,50)
+            self.entry_quat_2.insert(0,"{0:.4f}".format(quat[2]))
+            self.entry_quat_3.delete(0,50)
+            self.entry_quat_3.insert(0,"{0:.4f}".format(quat[3]))
+
+
+
             R = quat2rotm(quat[0],quat[1],quat[2],quat[3])  
-                  
             self.M = R.dot(self.M) #Modify the vertices matrix with a rotation matrix M
+
+            rotMprinted(self)
             self.update_cube() #Update the cube
 
     def onrelease(self,event):

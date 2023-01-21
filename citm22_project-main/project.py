@@ -468,12 +468,12 @@ class Arcball(customtkinter.CTk):
         print(axis1,axis2,axis3,angle)
         
         rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
-        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-(axis3*math.sin(angle))
+        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
         rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
         rotM[1,0] = axis1*axis2*(1-math.cos(angle))+axis3*math.sin(angle)
         rotM[1,1] = axis2*axis2+(1-axis2*axis2)*math.cos(angle)
         rotM[1,2] = axis2*axis3*(1-math.cos(angle))-axis1*math.sin(angle)
-        rotM[2,0] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
+        rotM[2,0] = axis1*axis3*(1-math.cos(angle))-axis2*math.sin(angle)
         rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
         rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
 
@@ -534,21 +534,25 @@ class Arcball(customtkinter.CTk):
         pa2=float(self.entry_rotV_2.get())
         pa3=float(self.entry_rotV_3.get())
 
-        vangle=math.sqrt((pa1* pa1)+(pa2* pa2)+(pa3*pa3))
+        angle=np.sqrt((pa1* pa1)+(pa2* pa2)+(pa3*pa3))
 
-        vaxis1=pa1/vangle
-        vaxis2=pa2/vangle
-        vaxis3=pa3/vangle    
+        axis1=pa1/angle
+        axis2=pa2/angle
+        axis3=pa3/angle    
         
-        rotM[0,0] = vaxis1*vaxis1 + vangle
-        rotM[0,1] = vaxis1*vaxis2*vangle - vaxis3*vangle
-        rotM[0,2] = vaxis1*vaxis3*vangle + vaxis3*vangle
-        rotM[1,0] = vaxis1*vaxis2*vangle + vaxis3*vangle
-        rotM[1,1] = vaxis2*vaxis2*vangle + vangle
-        rotM[1,2] = vaxis2*vaxis3*vangle - vaxis1*vangle
-        rotM[2,0] = vaxis1*vaxis3*vangle - vaxis2*vangle
-        rotM[2,1] = vaxis2*vaxis3*vangle + vaxis1*vangle
-        rotM[2,2] = vaxis3*vaxis3*vangle + vangle
+        print(axis1,axis2,axis3,angle)
+
+        rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
+        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
+        rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
+        rotM[1,0] = axis1*axis2*(1-math.cos(angle))+axis3*math.sin(angle)
+        rotM[1,1] = axis2*axis2+(1-axis2*axis2)*math.cos(angle)
+        rotM[1,2] = axis2*axis3*(1-math.cos(angle))-axis1*math.sin(angle)
+        rotM[2,0] = axis1*axis3*(1-math.cos(angle))-axis2*math.sin(angle)
+        rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
+        rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
+
+      
 
         self.entry_RotM_11.configure(state="normal")
         self.entry_RotM_11.delete(0,60)

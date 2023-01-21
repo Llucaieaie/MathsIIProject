@@ -467,15 +467,15 @@ class Arcball(customtkinter.CTk):
         axis3/=axisModule
         print(axis1,axis2,axis3,angle)
         
-        rotM[0,0] = axis1*axis1 + angle
-        rotM[0,1] = axis1*axis2*angle - axis3*angle
-        rotM[0,2] = axis1*axis3*angle + axis3*angle
-        rotM[1,0] = axis1*axis2*angle + axis3*angle
-        rotM[1,1] = axis2*axis2*angle + angle
-        rotM[1,2] = axis2*axis3*angle - axis1*angle
-        rotM[2,0] = axis1*axis3*angle - axis2*angle
-        rotM[2,1] = axis2*axis3*angle + axis1*angle
-        rotM[2,2] = axis3*axis3*angle + angle
+        rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
+        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-(axis3*math.sin(angle))
+        rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
+        rotM[1,0] = axis1*axis2*(1-math.cos(angle))+axis3*math.sin(angle)
+        rotM[1,1] = axis2*axis2+(1-axis2*axis2)*math.cos(angle)
+        rotM[1,2] = axis2*axis3*(1-math.cos(angle))-axis1*math.sin(angle)
+        rotM[2,0] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
+        rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
+        rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
 
         self.entry_RotM_11.configure(state="normal")
         self.entry_RotM_11.delete(0,60)

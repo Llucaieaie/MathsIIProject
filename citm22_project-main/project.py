@@ -220,6 +220,7 @@ def quatprinted(self, quat):
     self.entry_quat_2.insert(0,"{0:.4f}".format(quat[2]))
     self.entry_quat_3.delete(0,50)
     self.entry_quat_3.insert(0,"{0:.4f}".format(quat[3]))
+
 class Arcball(customtkinter.CTk):
 
     def __init__(self):
@@ -747,6 +748,7 @@ class Arcball(customtkinter.CTk):
         q3 = float (self.entry_quat_3.get())
 
         rotM=quat2rotm(q0,q1,q2,q3)
+        rotMprinted(self)
 
         axis, angle=rotM2AA(rotM)
 
@@ -758,17 +760,17 @@ class Arcball(customtkinter.CTk):
         roll, pitch, yaw = rotm2EA(rotM)
         EAprinted(self,roll, pitch, yaw)
 
-        rotMprinted(self)
-
         pass
   
     def onclick(self, event):
         """
         Event triggered function on the event of a mouse click inside the figure canvas
         """
+        #Save mouse coordinates
         x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
-
+        #Calcule module
         eqmodule=module(x1,y1,(r2/(2*math.sqrt(x1**2+y1**2))))
+        #Use the given formula
         if((x1**2+y1**2)<(1/2)*r2):
             m0[0]=y1
             m0[1]=math.sqrt(r2-(x1**2)-(y1**2))
@@ -790,9 +792,11 @@ class Arcball(customtkinter.CTk):
         """
         if self.pressed: #Only triggered if previous click
             
-            
+            #Save mouse coordinates
             x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
+            #Calcule module
             eqmodule=module(x1,y1,(r2/(2*math.sqrt(x1**2+y1**2))))
+            #Use the given formula
             if((x1**2+y1**2)<(1/2)*r2):
                 m1[0]=y1
                 m1[1]=math.sqrt(r2-(x1**2)-(y1**2))
@@ -802,29 +806,40 @@ class Arcball(customtkinter.CTk):
                 m1[0]= (r*y1)/eqmodule
                 m1[1]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/eqmodule
                 m1[2]= -(r*x1)/eqmodule
-
+            #Calculate the angle with the formula
             angle=math.acos(np.dot(m0,m1)/(module(m0[0],m0[1],m0[2])*module(m1[0],m1[1],m1[2])))
+            #The axis is the cross product since it gives a perpendicular angle to both elements 
             raxis=np.cross(m0,m1)
             
+            #Call the function that transforms a principal axis and angle to a quaternion
             quat=AA2quat(raxis,angle)
             
+            #Call the function that prints the Axis and angle
             AAprinted(self, raxis, angle)
 
+            #Call the function that given an axis and angle returns a rotation vector
             rv=AA2RV(raxis[0],raxis[1],raxis[2],angle)
 
+            #Call the function that prints the rotation vector
             RVprinted(self, rv)
 
+            #Call the function that given a quaternion returns a set of Euler angles
             angle1,angle2,angle3 = quat2EA(quat[1],quat[2],quat[3],quat[0])
 
+            #Call the function that prints the euler angles
             EAprinted(self,angle1,angle2,angle3)
 
+            #Call the function that prints the quaternion
             quatprinted(self, quat)
 
+            #Call the function that transforms a quaternion into a rotation matrix
             R = quat2rotm(quat[0],quat[1],quat[2],quat[3])  
             self.M = R.dot(self.M) #Modify the vertices matrix with a rotation matrix M
 
+            #Call the function that  prints the rotation matrix
             rotMprinted(self)
             self.update_cube() #Update the cube
+            #Save the actual m1 in m0, so we can use it in the next loop
             m0[0]=m1[0]
             m0[1]=m1[1]
             m0[2]=m1[2]

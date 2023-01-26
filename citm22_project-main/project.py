@@ -101,6 +101,21 @@ def AA2quat(raxis, angle):
     quat[3]=qvec[2]
     return quat
 
+def EA2rotm(theta,phi,psi):
+    theta = np.deg2rad(theta)
+    phi = np.deg2rad(phi)
+    psi = np.deg2rad(psi)
+
+    rotM[0,0] = math.cos(theta)*math.cos(psi)
+    rotM[0,1] = math.cos(psi)*math.sin(theta)*math.sin(phi) - math.cos(phi)*math.sin(psi)
+    rotM[0,2] = math.cos(psi)*math.cos(phi)*math.sin(theta) + math.sin(psi)*math.sin(phi)
+    rotM[1,0] = math.cos(theta)*math.sin(psi)
+    rotM[1,1] = math.sin(psi)*math.sin(theta)*math.sin(phi) + math.cos(phi)*math.cos(psi)
+    rotM[1,2] = math.sin(psi)*math.sin(theta)*math.cos(phi) - math.cos(psi)*math.sin(phi)
+    rotM[2,0] = -math.sin(theta)
+    rotM[2,1] = math.cos(theta)*math.sin(phi)
+    rotM[2,2] = math.cos(theta)*math.cos(phi)
+
 def rotM2AA(R):
     # Calculate the angle of rotation
     angle = math.acos((np.trace(R) - 1) / 2)
@@ -648,7 +663,9 @@ class Arcball(customtkinter.CTk):
         axis3 = float (self.entry_AA_ax3.get())
         
         AA2rotm(axis1,axis2,axis3,angle)
+        rotMprinted(self)
 
+        #Change the other parameters
         #Axis and angle to Rotation Vector
         rv=AA2RV(axis1,axis2,axis3, np.deg2rad(angle))
         RVprinted(self,rv)
@@ -661,8 +678,6 @@ class Arcball(customtkinter.CTk):
         raxis = np.array([axis1,axis2,axis3])
         quat=AA2quat(raxis,np.deg2rad(angle))
         quatprinted(self, quat)
-
-        rotMprinted(self)
 
         pass
 
@@ -681,7 +696,9 @@ class Arcball(customtkinter.CTk):
         axis3=pa3/angle    
 
         AA2rotm(axis1,axis2,axis3,np.rad2deg(angle))
+        rotMprinted(self)
 
+        #Change other parameters
         #Printing the previously extracted principal axis and angle
         raxis=np.array([axis1,axis2,axis3])
         AAprinted(self,raxis,angle)
@@ -693,9 +710,6 @@ class Arcball(customtkinter.CTk):
         #AA to quat
         quat=AA2quat(raxis,angle)
         quatprinted(self, quat)
-
-        rotMprinted(self)
-
         pass
  
     def apply_EA(self):
@@ -706,29 +720,20 @@ class Arcball(customtkinter.CTk):
         phi = float (self.entry_EA_roll.get())
         psi = float (self.entry_EA_yaw.get())
 
-        theta = np.deg2rad(theta)
-        phi = np.deg2rad(phi)
-        psi = np.deg2rad(psi)
+        EA2rotm(theta,phi,psi)
+        rotMprinted(self)
 
-        rotM[0,0] = math.cos(theta)*math.cos(psi)
-        rotM[0,1] = math.cos(psi)*math.sin(theta)*math.sin(phi) - math.cos(phi)*math.sin(psi)
-        rotM[0,2] = math.cos(psi)*math.cos(phi)*math.sin(theta) + math.sin(psi)*math.sin(phi)
-        rotM[1,0] = math.cos(theta)*math.sin(psi)
-        rotM[1,1] = math.sin(psi)*math.sin(theta)*math.sin(phi) + math.cos(phi)*math.cos(psi)
-        rotM[1,2] = math.sin(psi)*math.sin(theta)*math.cos(phi) - math.cos(psi)*math.sin(phi)
-        rotM[2,0] = -math.sin(theta)
-        rotM[2,1] = math.cos(theta)*math.sin(phi)
-        rotM[2,2] = math.cos(theta)*math.cos(phi)
-
+        #Change other parameters
         axis, angle=rotM2AA(rotM)
 
-        rv=AA2RV(axis[0],axis[1],axis[2], angle)
+        AAprinted(self,axis,angle)
+
+        rv=AA2RV(axis[0],axis[1],axis[2],angle)
         RVprinted(self,rv)
 
         quat=AA2quat(axis,angle)
         quatprinted(self, quat)
 
-        rotMprinted(self)
 
         pass
  
@@ -744,6 +749,8 @@ class Arcball(customtkinter.CTk):
         rotM=quat2rotm(q0,q1,q2,q3)
 
         axis, angle=rotM2AA(rotM)
+
+        AAprinted(self,axis,angle)
 
         rv=AA2RV(axis[0],axis[1],axis[2], angle)
         RVprinted(self,rv)

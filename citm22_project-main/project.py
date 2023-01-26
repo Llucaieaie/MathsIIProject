@@ -11,36 +11,23 @@ import math
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
+#Globals
 rotM = np.array([[1.00,0.00,0.00],
                 [0.00,1.00,0.00],
                 [0.00,0.00,1.00]])
+
 m0=np.array([0.00,0.00,0.00])
 m1=np.array([0.00,0.00,0.00])
+
+r2=5
+r=math.sqrt(r2)
+
+eqmodule=0
 
 def module(a,b,c):
     r=math.sqrt(a**2+b**2+c**2)
     return r
-
-def multquat(Q0,Q1):
-    
-    w0 = Q0[0]
-    x0 = Q0[1]
-    y0 = Q0[2]
-    z0 = Q0[3]
-
-    w1 = Q1[0]
-    x1 = Q1[1]
-    y1 = Q1[2]
-    z1 = Q1[3]
-
-    Q0Q1_w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
-    Q0Q1_x = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
-    Q0Q1_y = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
-    Q0Q1_z = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
      
-    result = np.array([Q0Q1_w, Q0Q1_x, Q0Q1_y, Q0Q1_z])
-     
-    return result
 def quat2rotm(q0,q1,q2,q3):
 
     quatModule = np.sqrt(q0*q0+q1*q1+q2*q2+q3*q3)
@@ -59,6 +46,76 @@ def quat2rotm(q0,q1,q2,q3):
     rotM[2,2] = q0*q0 - q1*q1 - q2*q2 + q3*q3
     return rotM
 
+def quat2EA(x, y, z, w):
+      
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+    
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+    
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+    
+    return roll_x, pitch_y, yaw_z # in radians 
+
+def AA2rotm(axis1,axis2,axis3,angle):
+        
+        angle = np.deg2rad(angle)
+        axisModule = np.sqrt(axis1*axis1+axis2*axis2+axis3*axis3)
+
+        axis1/=axisModule
+        axis2/=axisModule
+        axis3/=axisModule
+        rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
+        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
+        rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
+        rotM[1,0] = axis1*axis2*(1-math.cos(angle))+axis3*math.sin(angle)
+        rotM[1,1] = axis2*axis2+(1-axis2*axis2)*math.cos(angle)
+        rotM[1,2] = axis2*axis3*(1-math.cos(angle))-axis1*math.sin(angle)
+        rotM[2,0] = axis1*axis3*(1-math.cos(angle))-axis2*math.sin(angle)
+        rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
+        rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
+        
+def AA2RV(a1,a2,a3,angle):
+    RV=np.array([0.00,0.00,0.00])
+    rvmodule=module(a1,a2,a3)
+    a1=a1/rvmodule
+    a2=a2/rvmodule
+    a3=a3/rvmodule
+    RV[0]=a1*angle
+    RV[1]=a2*angle
+    RV[2]=a3*angle
+    return RV
+    
+def AA2quat(raxis, angle):
+    quat=np.array([0.00,0.00,0.00,0.00])
+    quat[0]=math.cos(angle/2)
+    qvec=math.sin(angle/2)*(raxis/module(raxis[0],raxis[2],raxis[2]))
+    quat[1]=qvec[0]
+    quat[2]=qvec[1]
+    quat[3]=qvec[2]
+    return quat
+
+def rotM2AA(R):
+    # Calculate the angle of rotation
+    angle = math.acos((np.trace(R) - 1) / 2)
+    
+    # Calculate the principal axis
+    axis = (1 / (2 * math.sin(angle))) * np.array([R[2,1] - R[1,2], R[0,2] - R[2,0], R[1,0] - R[0,1]])
+    
+    return axis, angle
+
+def rotm2EA(R):
+    pitch = -np.arcsin(R[2,0])
+    roll = np.arctan2(R[2,1]/np.cos(pitch),R[2,2]/np.cos(pitch))
+    yaw = np.arctan2(R[1,0]/np.cos(pitch),R[0,0]/np.cos(pitch))
+    return roll, pitch, yaw
+#Print Funcions
 def rotMprinted(self):
     self.entry_RotM_11.configure(state="normal")
     self.entry_RotM_11.delete(0,60)
@@ -110,30 +167,44 @@ def rotMprinted(self):
 
     pass
 
-def quat2EA(x, y, z, w):
-      
-    t0 = +2.0 * (w * x + y * z)
-    t1 = +1.0 - 2.0 * (x * x + y * y)
-    roll_x = math.atan2(t0, t1)
-    
-    t2 = +2.0 * (w * y - z * x)
-    t2 = +1.0 if t2 > +1.0 else t2
-    t2 = -1.0 if t2 < -1.0 else t2
-    pitch_y = math.asin(t2)
-    
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
-    
-    return roll_x, pitch_y, yaw_z # in radians 
+def AAprinted(self,raxis,angle):
+    self.entry_AA_angle.delete(0,50)
+    self.entry_AA_angle.insert(0,"{0:.4f}".format(np.rad2deg(angle)))
+    self.entry_AA_ax1.delete(0,50)
+    self.entry_AA_ax1.insert(0,"{0:.4f}".format(raxis[0]))
+    self.entry_AA_ax2.delete(0,50)
+    self.entry_AA_ax2.insert(0,"{0:.4f}".format(raxis[1]))
+    self.entry_AA_ax3.delete(0,50)
+    self.entry_AA_ax3.insert(0,"{0:.4f}".format(raxis[2]))
+    pass
 
-def AA2RV(a1,a2,a3,angle):
-    RV=np.array([0.00,0.00,0.00])
-    RV[0]=a1*angle
-    RV[1]=a2*angle
-    RV[2]=a3*angle
-    return RV
+def RVprinted(self,Rv):
 
+    self.entry_rotV_1.delete(0,50)
+    self.entry_rotV_1.insert(0,"{0:.4f}".format(Rv[0]))
+    self.entry_rotV_2.delete(0,50)
+    self.entry_rotV_2.insert(0,"{0:.4f}".format(Rv[1]))
+    self.entry_rotV_3.delete(0,50)
+    self.entry_rotV_3.insert(0,"{0:.4f}".format(Rv[2]))
+    pass
+
+def EAprinted(self,roll, pitch, yaw):
+    self.entry_EA_roll.delete(0,50)
+    self.entry_EA_roll.insert(0,"{0:.4f}".format(np.rad2deg(roll)))
+    self.entry_EA_pitch.delete(0,50)
+    self.entry_EA_pitch.insert(0,"{0:.4f}".format(np.rad2deg(pitch)))
+    self.entry_EA_yaw.delete(0,50)
+    self.entry_EA_yaw.insert(0,"{0:.4f}".format(np.rad2deg(yaw)))
+
+def quatprinted(self, quat):
+    self.entry_quat_0.delete(0,50)
+    self.entry_quat_0.insert(0,"{0:.4f}".format(quat[0]))
+    self.entry_quat_1.delete(0,50)
+    self.entry_quat_1.insert(0,"{0:.4f}".format(quat[1]))
+    self.entry_quat_2.delete(0,50)
+    self.entry_quat_2.insert(0,"{0:.4f}".format(quat[2]))
+    self.entry_quat_3.delete(0,50)
+    self.entry_quat_3.insert(0,"{0:.4f}".format(quat[3]))
 class Arcball(customtkinter.CTk):
 
     def __init__(self):
@@ -576,22 +647,20 @@ class Arcball(customtkinter.CTk):
         axis2 = float (self.entry_AA_ax2.get())
         axis3 = float (self.entry_AA_ax3.get())
         
-        angle = np.deg2rad(angle)
+        AA2rotm(axis1,axis2,axis3,angle)
 
-        axisModule = np.sqrt(axis1*axis1+axis2*axis2+axis3*axis3)
+        #Axis and angle to Rotation Vector
+        rv=AA2RV(axis1,axis2,axis3, np.deg2rad(angle))
+        RVprinted(self,rv)
 
-        axis1/=axisModule
-        axis2/=axisModule
-        axis3/=axisModule
-        rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
-        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
-        rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
-        rotM[1,0] = axis1*axis2*(1-math.cos(angle))+axis3*math.sin(angle)
-        rotM[1,1] = axis2*axis2+(1-axis2*axis2)*math.cos(angle)
-        rotM[1,2] = axis2*axis3*(1-math.cos(angle))-axis1*math.sin(angle)
-        rotM[2,0] = axis1*axis3*(1-math.cos(angle))-axis2*math.sin(angle)
-        rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
-        rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
+        #Rotm to EA
+        roll, pitch, yaw = rotm2EA(rotM)
+        EAprinted(self,roll, pitch, yaw)
+
+        #AA to quat
+        raxis = np.array([axis1,axis2,axis3])
+        quat=AA2quat(raxis,np.deg2rad(angle))
+        quatprinted(self, quat)
 
         rotMprinted(self)
 
@@ -611,21 +680,24 @@ class Arcball(customtkinter.CTk):
         axis2=pa2/angle
         axis3=pa3/angle    
 
-        rotM[0,0] = axis1*axis1 + (1-axis1*axis1)*math.cos(angle)
-        rotM[0,1] = axis1*axis2*(1-math.cos(angle))-axis3*math.sin(angle)
-        rotM[0,2] = axis1*axis3*(1-math.cos(angle))+axis2*math.sin(angle)
-        rotM[1,0] = axis1*axis2*(1-math.cos(angle))+axis3*math.sin(angle)
-        rotM[1,1] = axis2*axis2+(1-axis2*axis2)*math.cos(angle)
-        rotM[1,2] = axis2*axis3*(1-math.cos(angle))-axis1*math.sin(angle)
-        rotM[2,0] = axis1*axis3*(1-math.cos(angle))-axis2*math.sin(angle)
-        rotM[2,1] = axis2*axis3*(1-math.cos(angle))+axis1*math.sin(angle)
-        rotM[2,2] = axis3*axis3+(1-axis3*axis3)*math.cos(angle)
+        AA2rotm(axis1,axis2,axis3,np.rad2deg(angle))
+
+        #Printing the previously extracted principal axis and angle
+        raxis=np.array([axis1,axis2,axis3])
+        AAprinted(self,raxis,angle)
+
+        #Rotm to EA
+        roll, pitch, yaw = rotm2EA(rotM)
+        EAprinted(self,roll, pitch, yaw)
+
+        #AA to quat
+        quat=AA2quat(raxis,angle)
+        quatprinted(self, quat)
 
         rotMprinted(self)
 
         pass
-
-    
+ 
     def apply_EA(self):
         """
         Event triggered function on the event of a push on the button button_EA
@@ -648,11 +720,18 @@ class Arcball(customtkinter.CTk):
         rotM[2,1] = math.cos(theta)*math.sin(phi)
         rotM[2,2] = math.cos(theta)*math.cos(phi)
 
+        axis, angle=rotM2AA(rotM)
+
+        rv=AA2RV(axis[0],axis[1],axis[2], angle)
+        RVprinted(self,rv)
+
+        quat=AA2quat(axis,angle)
+        quatprinted(self, quat)
+
         rotMprinted(self)
 
         pass
-
-    
+ 
     def apply_quat(self):
         """
         Event triggered function on the event of a push on the button button_quat
@@ -664,34 +743,41 @@ class Arcball(customtkinter.CTk):
 
         rotM=quat2rotm(q0,q1,q2,q3)
 
+        axis, angle=rotM2AA(rotM)
+
+        rv=AA2RV(axis[0],axis[1],axis[2], angle)
+        RVprinted(self,rv)
+
+        roll, pitch, yaw = rotm2EA(rotM)
+        EAprinted(self,roll, pitch, yaw)
+
         rotMprinted(self)
 
         pass
-
-    
+  
     def onclick(self, event):
         """
         Event triggered function on the event of a mouse click inside the figure canvas
         """
-        r=math.sqrt(2)
-        r2=2
-        x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
+
         
+        x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
+
+        eqmodule=module(x1,y1,(r2/(2*math.sqrt(x1**2+y1**2))))
         if((x1**2+y1**2)<(1/2)*r2):
-            m0[0]=x1
-            m0[1]=y1
-            m0[2]=math.sqrt(r2-(x1**2)-(y1**2))
+            m0[0]=y1
+            m0[1]=math.sqrt(r2-(x1**2)-(y1**2))
+            m0[2]=-x1
 
         if((x1**2+y1**2)>=(1/2)*r2):
-            m0[0]= (r*x1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
-            m0[1]= (r*y1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
-            m0[2]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+            m0[0]= (r*y1)/eqmodule
+            m0[1]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/eqmodule
+            m0[2]= -(r*x1)/eqmodule
             
         print("Pressed button", event.button)
 
         if event.button:
             self.pressed = True # Bool to control(activate) a drag (click+move)
-
 
     def onmove(self,event):
         """
@@ -699,84 +785,50 @@ class Arcball(customtkinter.CTk):
         """
         if self.pressed: #Only triggered if previous click
             
-            r2=2
-            r=math.sqrt(r2)
+            
             x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
-        
+            eqmodule=module(x1,y1,(r2/(2*math.sqrt(x1**2+y1**2))))
             if((x1**2+y1**2)<(1/2)*r2):
-                m1[0]=x1
-                m1[1]=y1
-                m1[2]=math.sqrt(r2-(x1**2)-(y1**2))
-
-
+                m1[0]=y1
+                m1[1]=math.sqrt(r2-(x1**2)-(y1**2))
+                m1[2]=-x1
 
             if((x1**2+y1**2)>=(1/2)*r2):
-                m1[0]= (r*x1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
-                m1[1]= (r*y1)/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
-                m1[2]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/math.sqrt(x1**2+y1**2+(r2/(2*math.sqrt(x1**2+y1**2))))
+                m1[0]= (r*y1)/eqmodule
+                m1[1]= (r*(r2/(2*math.sqrt(x1**2+y1**2))))/eqmodule
+                m1[2]= -(r*x1)/eqmodule
 
             angle=math.acos(np.dot(m0,m1)/(module(m0[0],m0[1],m0[2])*module(m1[0],m1[1],m1[2])))
-            quat=np.array([0.00,0.00,0.00,0.00])
-            quat[0]=math.cos(angle/2)
             raxis=np.cross(m0,m1)
-            qvec=math.sin(angle/2)*(raxis/module(raxis[0],raxis[2],raxis[2]))
-            quat[1]=qvec[0]
-            quat[2]=qvec[1]
-            quat[3]=qvec[2]
             
+            quat=AA2quat(raxis,angle)
             
-            self.entry_AA_angle.delete(0,50)
-            self.entry_AA_angle.insert(0,"{0:.4f}".format(np.rad2deg(angle)))
-            self.entry_AA_ax1.delete(0,50)
-            self.entry_AA_ax1.insert(0,"{0:.4f}".format(raxis[0]))
-            self.entry_AA_ax2.delete(0,50)
-            self.entry_AA_ax2.insert(0,"{0:.4f}".format(raxis[1]))
-            self.entry_AA_ax3.delete(0,50)
-            self.entry_AA_ax3.insert(0,"{0:.4f}".format(raxis[2]))
+            AAprinted(self, raxis, angle)
 
             rv=AA2RV(raxis[0],raxis[1],raxis[2],angle)
-            self.entry_rotV_1.delete(0,50)
-            self.entry_rotV_1.insert(0,"{0:.4f}".format(rv[0]))
-            self.entry_rotV_2.delete(0,50)
-            self.entry_rotV_2.insert(0,"{0:.4f}".format(rv[1]))
-            self.entry_rotV_3.delete(0,50)
-            self.entry_rotV_3.insert(0,"{0:.4f}".format(rv[2]))
+
+            RVprinted(self, rv)
 
             angle1,angle2,angle3 = quat2EA(quat[1],quat[2],quat[3],quat[0])
 
-            self.entry_EA_roll.delete(0,50)
-            self.entry_EA_roll.insert(0,"{0:.4f}".format(np.rad2deg(angle1)))
-            self.entry_EA_pitch.delete(0,50)
-            self.entry_EA_pitch.insert(0,"{0:.4f}".format(np.rad2deg(angle2)))
-            self.entry_EA_yaw.delete(0,50)
-            self.entry_EA_yaw.insert(0,"{0:.4f}".format(np.rad2deg(angle3)))
+            EAprinted(self,angle1,angle2,angle3)
 
-            self.entry_quat_0.delete(0,50)
-            self.entry_quat_0.insert(0,"{0:.4f}".format(quat[0]))
-            self.entry_quat_1.delete(0,50)
-            self.entry_quat_1.insert(0,"{0:.4f}".format(quat[1]))
-            self.entry_quat_2.delete(0,50)
-            self.entry_quat_2.insert(0,"{0:.4f}".format(quat[2]))
-            self.entry_quat_3.delete(0,50)
-            self.entry_quat_3.insert(0,"{0:.4f}".format(quat[3]))
-            timer=1
-            if(timer<1):
-                quat=multquat(quat, oldquat)
-            
+            quatprinted(self, quat)
+
             R = quat2rotm(quat[0],quat[1],quat[2],quat[3])  
             self.M = R.dot(self.M) #Modify the vertices matrix with a rotation matrix M
-            oldquat=quat
-            timer=-1
 
             rotMprinted(self)
             self.update_cube() #Update the cube
+            m0[0]=m1[0]
+            m0[1]=m1[1]
+            m0[2]=m1[2]
 
     def onrelease(self,event):
         """
         Event triggered function on the event of a mouse release
         """
         self.pressed = False # Bool to control(deactivate) a drag (click+move)
-
 
     def init_cube(self):
         """
@@ -836,7 +888,6 @@ class Arcball(customtkinter.CTk):
 
         self.pix2unit = 1.0/60 #ratio for drawing the cube 
 
-
     def update_cube(self):
         """
         Updates the cube vertices and updates the figure.
@@ -851,7 +902,6 @@ class Arcball(customtkinter.CTk):
         self.facesObj.set_verts(faces)
         self.bm.update()
 
-
     def canvas_coordinates_to_figure_coordinates(self,x_can,y_can):
         """
         Remap canvas coordinates to cube centered coordinates
@@ -864,7 +914,6 @@ class Arcball(customtkinter.CTk):
         y_fig = (y_can-figure_center_y)*self.pix2unit
 
         return(x_fig,y_fig)
-
 
     def destroy(self):
         """

@@ -19,7 +19,7 @@ rotM = np.array([[1.00,0.00,0.00],
 m0=np.array([0.00,0.00,0.00])
 m1=np.array([0.00,0.00,0.00])
 
-r2=5
+r2=7
 r=math.sqrt(r2)
 
 eqmodule=0
@@ -766,8 +766,6 @@ class Arcball(customtkinter.CTk):
         """
         Event triggered function on the event of a mouse click inside the figure canvas
         """
-
-        
         x1,y1= self.canvas_coordinates_to_figure_coordinates(event.x,event.y)
 
         eqmodule=module(x1,y1,(r2/(2*math.sqrt(x1**2+y1**2))))

@@ -23,7 +23,7 @@ r2=7
 r=math.sqrt(r2)
 
 eqmodule=0
-
+#Functions to calcule:
 def module(a,b,c):
     r=math.sqrt(a**2+b**2+c**2)
     return r
@@ -50,18 +50,18 @@ def quat2EA(x, y, z, w):
       
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + y * y)
-    roll_x = math.atan2(t0, t1)
+    roll = math.atan2(t0, t1)
     
     t2 = +2.0 * (w * y - z * x)
     t2 = +1.0 if t2 > +1.0 else t2
     t2 = -1.0 if t2 < -1.0 else t2
-    pitch_y = math.asin(t2)
+    pitch = math.asin(t2)
     
     t3 = +2.0 * (w * z + x * y)
     t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
+    yaw = math.atan2(t3, t4)
     
-    return roll_x, pitch_y, yaw_z # in radians 
+    return roll, pitch, yaw
 
 def AA2rotm(axis1,axis2,axis3,angle):
         
@@ -130,7 +130,7 @@ def rotm2EA(R):
     roll = np.arctan2(R[2,1]/np.cos(pitch),R[2,2]/np.cos(pitch))
     yaw = np.arctan2(R[1,0]/np.cos(pitch),R[0,0]/np.cos(pitch))
     return roll, pitch, yaw
-#Print Funcions
+#Functions to print:
 def rotMprinted(self):
     self.entry_RotM_11.configure(state="normal")
     self.entry_RotM_11.delete(0,60)

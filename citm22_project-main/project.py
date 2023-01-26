@@ -21,6 +21,26 @@ def module(a,b,c):
     r=math.sqrt(a**2+b**2+c**2)
     return r
 
+def multquat(Q0,Q1):
+    
+    w0 = Q0[0]
+    x0 = Q0[1]
+    y0 = Q0[2]
+    z0 = Q0[3]
+
+    w1 = Q1[0]
+    x1 = Q1[1]
+    y1 = Q1[2]
+    z1 = Q1[3]
+
+    Q0Q1_w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+    Q0Q1_x = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
+    Q0Q1_y = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
+    Q0Q1_z = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
+     
+    result = np.array([Q0Q1_w, Q0Q1_x, Q0Q1_y, Q0Q1_z])
+     
+    return result
 def quat2rotm(q0,q1,q2,q3):
 
     quatModule = np.sqrt(q0*q0+q1*q1+q2*q2+q3*q3)
@@ -739,11 +759,14 @@ class Arcball(customtkinter.CTk):
             self.entry_quat_2.insert(0,"{0:.4f}".format(quat[2]))
             self.entry_quat_3.delete(0,50)
             self.entry_quat_3.insert(0,"{0:.4f}".format(quat[3]))
-
-
-
+            timer=1
+            if(timer<1):
+                quat=multquat(quat, oldquat)
+            
             R = quat2rotm(quat[0],quat[1],quat[2],quat[3])  
             self.M = R.dot(self.M) #Modify the vertices matrix with a rotation matrix M
+            oldquat=quat
+            timer=-1
 
             rotMprinted(self)
             self.update_cube() #Update the cube

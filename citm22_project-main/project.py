@@ -19,7 +19,7 @@ rotM = np.array([[1.00,0.00,0.00],
 m0=np.array([0.00,0.00,0.00])
 m1=np.array([0.00,0.00,0.00])
 
-r2=7
+r2=2
 r=math.sqrt(r2)
 
 eqmodule=0
@@ -833,8 +833,7 @@ class Arcball(customtkinter.CTk):
             quatprinted(self, quat)
 
             #Call the function that transforms a quaternion into a rotation matrix
-            R = quat2rotm(quat[0],quat[1],quat[2],quat[3])  
-            self.M = R.dot(self.M) #Modify the vertices matrix with a rotation matrix M
+            quat2rotm(quat[0],quat[1],quat[2],quat[3])  
 
             #Call the function that  prints the rotation matrix
             rotMprinted(self)

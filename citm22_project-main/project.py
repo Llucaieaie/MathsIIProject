@@ -11,6 +11,8 @@ import math
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
+#Fet per Xavier Prats, Joan Giol, Rafael Esquius, Lluc Estruch
+
 #Globals
 rotM = np.array([[1.00,0.00,0.00],
                 [0.00,1.00,0.00],
@@ -19,7 +21,8 @@ rotM = np.array([[1.00,0.00,0.00],
 m0=np.array([0.00,0.00,0.00])
 m1=np.array([0.00,0.00,0.00])
 
-r2=2
+#Ball radious
+r2=3
 r=math.sqrt(r2)
 
 eqmodule=0
